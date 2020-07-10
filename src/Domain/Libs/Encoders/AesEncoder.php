@@ -10,7 +10,7 @@ class AesEncoder implements EncoderInterface
 
     private $aes;
 
-    public function __construct(string $key)
+    public function __construct(string $key, int $mode = Base::MODE_CFB)
     {
         $this->aes = new AES(Base::MODE_CFB);
         $this->aes->setKey($key);
