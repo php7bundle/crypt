@@ -47,7 +47,7 @@ class AesAdvancedEncoder implements EncoderInterface
 
     public function decode($jsonStr)
     {
-        $password = $password ?: $this->password;
+        $password = $this->password;
         $decoded = $this->formatter->decode($jsonStr);
         //$decoded['ct'] = $this->verify($decoded['ct']);
         $concatedPassphrase = $password . $decoded['salt'];
