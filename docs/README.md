@@ -4,3 +4,5 @@
 
 * [Установка](install.md)
 * [Конфигурация](config.md)
+* [Сертификат](certificate.md)
+* [Шифрование](crypt.md)

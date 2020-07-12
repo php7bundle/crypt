@@ -2,16 +2,14 @@
 
 namespace PhpBundle\Crypt\Domain\Libs\Rsa;
 
+use PhpBundle\Crypt\Domain\Enums\CertificateFormatEnum;
+use PhpBundle\Crypt\Domain\Enums\RsaKeyFormatEnum;
 use PhpBundle\Crypt\Domain\Libs\Encoders\EncoderInterface;
+use PhpLab\Core\Exceptions\NotFoundException;
+use PhpLab\Core\Helpers\StringHelper;
 
-class RsaStore implements EncoderInterface
+class RsaStore extends BaseRsaStore implements RsaStoreInterface
 {
-
-    const PRIVATE_KEY_FILE = 'priv.rsa';
-    const PUBLIC_KEY_FILE = 'pub.rsa';
-
-    const RSA_FORMAT_TEXT = 'RSA_FORMAT_TEXT';
-    const RSA_FORMAT_BIN = 'RSA_FORMAT_BIN';
 
     private $dir;
 
@@ -20,78 +18,24 @@ class RsaStore implements EncoderInterface
         $this->dir = $dir;
     }
 
-    public function getPublicKey(string $format = self::RSA_FORMAT_TEXT)
-    {
-        $key = $this->getContent(self::PUBLIC_KEY_FILE);
-        if($format == self::RSA_FORMAT_BIN) {
-            $key = openssl_pkey_get_public($key);
+    public function getDir() {
+        return $this->dir;
+    }
+
+    protected function getContent(string $name): string {
+        $fileName = $this->dir . '/' . $name;
+        if( ! file_exists($fileName)) {
+            throw new NotFoundException("Not found $name!");
         }
-        return $key;
+        $content = file_get_contents($fileName);
+        return $content;
     }
 
-    public function getPrivateKey(string $format = self::RSA_FORMAT_TEXT)
-    {
-        $key = $this->getContent(self::PRIVATE_KEY_FILE);
-        if($format == self::RSA_FORMAT_BIN) {
-            $ogp = openssl_get_privatekey($this->privateKey);
+    protected function setContent(string $name, string $content) {
+        if($this->readOnly) {
+            throw new \Exception('Read only!');
         }
-        return $key;
+        return file_put_contents($this->dir . '/' . $name, $content);
     }
 
-    private function getContent($name) {
-        return file_get_contents($this->dir . '/' . $name);
-    }
-
-    public function encode($data)
-    {
-        $pKey = openssl_pkey_get_public($this->publicKey);
-        $encrypted = "";
-        openssl_public_encrypt($data, $encrypted, $pKey);
-        return base64_encode($encrypted);
-    }
-
-    public function decode($encrypted)
-    {
-        $ogp = openssl_get_privatekey($this->privateKey);
-        $binEncyptedData = base64_decode($encrypted);
-        $isSuccess = @openssl_private_decrypt($binEncyptedData, $out, $ogp);
-        if(! $isSuccess) {
-            throw new \Exception('Decrypt error');
-        }
-        return $out;
-    }
-
-
-
-    function privateKeyEncrypt($privateKey, $content)
-    {
-        $piKey = openssl_pkey_get_private($privateKey);
-        $encrypted = "";
-        openssl_private_encrypt($content, $encrypted, $piKey);
-        return base64_encode($encrypted);
-    }
-//rsa公钥解密
-    function publicKeyDecrypt($publicKey, $content)
-    {
-        $pKey = openssl_pkey_get_public($publicKey);
-        $decrypted = "";
-        openssl_public_decrypt($content, $decrypted, $pKey);
-        return $decrypted;
-    }
-//rsa公钥加密
-    function publicKeyEncrypt($publicKey, $content)
-    {
-        $pKey = openssl_pkey_get_public($publicKey);
-        $encrypted = "";
-        openssl_public_encrypt($content, $encrypted, $pKey);
-        return base64_encode($encrypted);
-    }
-//rsa私钥解密
-    function privateKeyDecrypt($privateKey, $content)
-    {
-        $pKey = openssl_pkey_get_private($privateKey);
-        $decrypted = "";
-        openssl_private_decrypt($content, $decrypted, $pKey);
-        return $decrypted;
-    }
 }

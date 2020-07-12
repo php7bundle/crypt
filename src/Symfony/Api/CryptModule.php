@@ -32,7 +32,7 @@ class CryptModule
         $controllerClassName = HandShakeController::class;
         $routeNamePrefix = RestApiRouteHelper::extractRoutePrefix($controllerClassName);
 
-        $this->addRoute($routeCollection, $controllerClassName, 'getPublicKey');
+        //$this->addRoute($routeCollection, $controllerClassName, 'getPublicKey');
         $this->addRoute($routeCollection, $controllerClassName, 'setSecretKey');
         $this->addRoute($routeCollection, $controllerClassName, 'startSession');
 

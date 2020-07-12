@@ -104,7 +104,33 @@ class HashAlgoEnum extends BaseEnum
 
     const HAVAL256_5 = 'haval256,5';
 
+    const DSS1 = 'dss1';
+
+    const RMD160 = 'rmd160';
+
+    public static $openSsl = [
+        self::SHA1 => OPENSSL_ALGO_SHA1,
+        self::MD5 => OPENSSL_ALGO_MD5,
+        self::MD4 => OPENSSL_ALGO_MD4,
+        //self::MD2 => OPENSSL_ALGO_MD2,
+        //self::DSS1 => OPENSSL_ALGO_DSS1,
+        self::SHA224 => OPENSSL_ALGO_SHA224,
+        self::SHA256 => OPENSSL_ALGO_SHA256,
+        self::SHA384 => OPENSSL_ALGO_SHA384,
+        self::SHA512 => OPENSSL_ALGO_SHA512,
+        self::RMD160 => OPENSSL_ALGO_RMD160,
+    ];
+
+    public static function nameToOpenSsl(string $algo) {
+        return self::$openSsl[$algo];
+    }
+
+    public static function openSslToName(string $algo) {
+        $assoc = array_flip(self::$openSsl);
+        return $assoc[$algo];
+    }
 }
+
 
 /*
 $algos = [];

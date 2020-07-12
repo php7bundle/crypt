@@ -2,6 +2,9 @@
 
 namespace PhpBundle\Crypt\Domain\Libs\Rsa;
 
+use PhpBundle\Crypt\Domain\Entities\SignatureEntity;
+use PhpBundle\Crypt\Domain\Enums\HashAlgoEnum;
+use PhpBundle\Crypt\Domain\Enums\RsaKeyFormatEnum;
 use PhpBundle\Crypt\Domain\Libs\Encoders\EncoderInterface;
 
 class Rsa implements EncoderInterface
@@ -9,7 +12,7 @@ class Rsa implements EncoderInterface
 
     private $store;
 
-    public function __construct(RsaStore $store)
+    public function __construct(RsaStoreInterface $store)
     {
         $this->store = $store;
     }
@@ -38,7 +41,28 @@ class Rsa implements EncoderInterface
         return $out;
     }
 
+    public function sign(string $data, string $algoName = HashAlgoEnum::SHA256): SignatureEntity
+    {
+        $p = openssl_pkey_get_private($this->store->getPrivateKey());
+        //dd($p);
+        openssl_sign($data, $signature, $p, HashAlgoEnum::nameToOpenSsl($algoName));
+        openssl_free_key($p);
+        $signatureEntity = new SignatureEntity;
+        $signatureEntity->setSignatureBin($signature);
+        $signatureEntity->setAlgorithm($algoName);
+        return $signatureEntity;
+    }
 
+    public function verify($data, SignatureEntity $signatureEntity): bool
+    {
+        $algo = HashAlgoEnum::nameToOpenSsl($signatureEntity->getAlgorithm());
+        //dd($this->store->getPublicKey(RsaStore::RSA_FORMAT_PEM));
+        $p = openssl_pkey_get_public($this->store->getPublicKey(RsaKeyFormatEnum::PEM));
+        //dd($p);
+        $isVerify = openssl_verify($data, $signatureEntity->getSignatureBin(), $p, $algo);
+        openssl_free_key($p);
+        return $isVerify;
+    }
 
 
 
