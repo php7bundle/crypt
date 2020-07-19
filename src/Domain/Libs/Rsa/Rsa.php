@@ -2,6 +2,7 @@
 
 namespace PhpBundle\Crypt\Domain\Libs\Rsa;
 
+use PhpBundle\Crypt\Domain\Entities\RsaKeyEntity;
 use PhpBundle\Crypt\Domain\Entities\SignatureEntity;
 use PhpBundle\Crypt\Domain\Enums\HashAlgoEnum;
 use PhpBundle\Crypt\Domain\Enums\RsaKeyFormatEnum;
@@ -20,6 +21,14 @@ class Rsa implements EncoderInterface
     public function getPublicKey()
     {
         return $this->store->getPublicKey();
+    }
+
+    public function getCertificate(): RsaKeyEntity
+    {
+        $pem = $this->store->getCertificate();
+        $json = RsaHelper::pemToBin($pem);
+        $key = new RsaKeyEntity(RsaKeyEntity::CERTIFICATE, $json);
+        return $key;
     }
 
     public function encode($data)

@@ -15,7 +15,7 @@ abstract class BaseRsaStore implements RsaStoreInterface
 
     const PRIVATE_KEY_FILE = 'priv.rsa';
     const PUBLIC_KEY_FILE = 'pub.rsa';
-    const CERTIFICATE_FILE = 'pub.cert';
+    const CERTIFICATE_FILE = 'cert.pem';
     const SUBJECT_FILE = 'subject.json';
 
     protected $readOnly = true;
@@ -44,18 +44,18 @@ abstract class BaseRsaStore implements RsaStoreInterface
         return $subject;
     }
 
-    public function setCertificate(string $cert) {
+    public function setCertificate(string $cert, string $format = CertificateFormatEnum::JSON) {
         $this->setContent(self::CERTIFICATE_FILE, $cert);
     }
 
     public function getCertificate(string $format = CertificateFormatEnum::JSON)
     {
         $key = $this->getContent(self::CERTIFICATE_FILE);
-        if($format == CertificateFormatEnum::JSON) {
+        /*if($format == CertificateFormatEnum::JSON) {
             $key = openssl_pkey_get_public($key);
         } elseif($format == CertificateFormatEnum::ARRAY) {
             $key = json_decode($key);
-        }
+        }*/
         return $key;
     }
 
@@ -67,13 +67,10 @@ abstract class BaseRsaStore implements RsaStoreInterface
     {
         $key = $this->getContent(self::PUBLIC_KEY_FILE);
         if($format == RsaKeyFormatEnum::BIN) {
-            $key = openssl_pkey_get_public($key);
+            //$key = openssl_pkey_get_public($key);
+            $key = RsaHelper::pemToBin($key);
         } elseif($format == RsaKeyFormatEnum::PEM) {
-            $key = StringHelper::mb_wordwrap($key, 64);
-            //dd($key);
-            $key = "-----BEGIN PUBLIC KEY-----
-$key
------END PUBLIC KEY----- ";
+            $key = RsaHelper::base64ToPem($key, 'PUBLIC KEY');
         } else {
             $key = RsaHelper::keyToLine($key);
         }
@@ -88,7 +85,11 @@ $key
     {
         $key = $this->getContent(self::PRIVATE_KEY_FILE);
         if($format == RsaKeyFormatEnum::BIN) {
-            $ogp = openssl_get_privatekey($this->privateKey);
+            $key = RsaHelper::pemToBin($key);
+            //$ogp = openssl_get_privatekey($this->privateKey);
+        } elseif($format == RsaKeyFormatEnum::PEM) {
+            $key = RsaHelper::base64ToPem($key, 'PRIVATE KEY');
+            //dd($key);
         } else {
             //$key = $this->keyToLine($key);
         }

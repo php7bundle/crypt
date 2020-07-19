@@ -10,7 +10,8 @@ class CertificateSubjectEntity
     private $type;
     private $name;
     private $host;
-    private $trustLevel;
+    private $roles;
+private $trustLevel;
     private $createdAt;
     private $expireAt;
     private $publicKey;
@@ -48,6 +49,16 @@ class CertificateSubjectEntity
     public function setHost($host): void
     {
         $this->host = $host;
+    }
+
+    public function getRoles()
+    {
+        return $this->roles;
+    }
+
+    public function setRoles($roles): void
+    {
+        $this->roles = $roles;
     }
 
     public function getTrustLevel()

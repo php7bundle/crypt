@@ -6,7 +6,7 @@ class CertificateEntity
 {
 
     private $subject;
-    private $certifier;
+    private $issuer;
     private $signature;
 
     public function getSubject(): CertificateSubjectEntity
@@ -19,14 +19,14 @@ class CertificateEntity
         $this->subject = $subject;
     }
 
-    public function getCertifier()
+    public function getIssuer()
     {
-        return $this->certifier;
+        return $this->issuer;
     }
 
-    public function setCertifier($certifier): void
+    public function setIssuer($issuer): void
     {
-        $this->certifier = $certifier;
+        $this->issuer = $issuer;
     }
 
     public function getSignature(): SignatureEntity

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Container\Container;
-use PhpBundle\Crypt\Domain\Libs\Rsa\RsaStore;
+use PhpBundle\Crypt\Domain\Libs\Rsa\RsaStoreFile;
 use PhpBundle\Crypt\Symfony\Api\CryptModule;
 use PhpLab\Core\Enums\Measure\TimeEnum;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -28,7 +28,7 @@ $container->bind(Request::class, function () {
 }, true);
 $container->bind(RsaStoreInterface::class, function () {
     $rsaDirectory = FileHelper::rootPath() . '/' . $_ENV['RSA_HOST_DIRECTORY'];
-    return new RsaStore($rsaDirectory);
+    return new RsaStoreFile($rsaDirectory);
 }, true);
 $container->bind(AbstractAdapter::class, function () {
     $cacheDirectory = FileHelper::rootPath() . '/' . $_ENV['CACHE_DIRECTORY'];

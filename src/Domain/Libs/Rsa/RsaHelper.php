@@ -4,6 +4,7 @@ namespace PhpBundle\Crypt\Domain\Libs\Rsa;
 
 use PhpBundle\Crypt\Domain\Entities\CertificateSubjectEntity;
 use PhpLab\Core\Domain\Helpers\EntityHelper;
+use PhpLab\Core\Helpers\StringHelper;
 
 class RsaHelper
 {
@@ -14,11 +15,38 @@ class RsaHelper
         return $key;
     }
 
+    public static function pemToBin($key) {
+        $key = self::keyToLine($key);
+        $key = base64_decode($key);
+        return $key;
+    }
+
+    public static function binToPem($key, $tag) {
+        $key = base64_encode($key);
+        $key = self::base64ToPem($key, $tag);
+        return $key;
+    }
+
+    public static function base64ToPem($key, $tag) {
+        $key = wordwrap($key, 64, PHP_EOL, true);
+        $tag = mb_strtoupper($tag);
+        $key = "-----BEGIN $tag-----\n$key\n-----END $tag-----";
+        return $key;
+    }
+
     public static function subjectArrayToJson(array $subjectArray): string
     {
         $subjectArray['publicKey'] = RsaHelper::keyToLine($subjectArray['publicKey']);
         ksort($subjectArray);
-        $subjectJson = json_encode($subjectArray);
+
+        $arr = [];
+        foreach ($subjectArray as $key => $value) {
+            $arr[] = $key . ':' . $value;
+        }
+        $subjectJson = implode('|', $arr);
+
+        //$subjectJson = json_encode($subjectArray);
+
         return $subjectJson;
     }
 

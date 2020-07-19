@@ -10,7 +10,7 @@ use PhpBundle\Crypt\Domain\Enums\HashAlgoEnum;
 use PhpBundle\Crypt\Domain\Enums\TrustLevelEnum;
 use PhpBundle\Crypt\Domain\Libs\Rsa\Rsa;
 use PhpBundle\Crypt\Domain\Libs\Rsa\RsaHelper;
-use PhpBundle\Crypt\Domain\Libs\Rsa\RsaStore;
+use PhpBundle\Crypt\Domain\Libs\Rsa\RsaStoreFile;
 use PhpBundle\Crypt\Domain\Services\CertificateService;
 use PhpLab\Core\Console\Question\ChoiceQuestion;
 use PhpLab\Core\Domain\Helpers\EntityHelper;
@@ -41,6 +41,18 @@ class CertificateCommand extends BaseGeneratorCommand
         $this->certificateService = $certificateService;
     }
 
+    private function selectProfile($message, InputInterface $input, OutputInterface $output) {
+        $rsaDir = FileHelper::path($_ENV['RSA_DIRECTORY']);
+        $profiles = FileHelper::scanDir($rsaDir);
+        $question = new ChoiceQuestion(
+            $message,
+            $profiles
+        );
+        $helper = $this->getHelper('question');
+        $profileName = $helper->ask($input, $output, $question);
+        return $profileName;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $rsaDir = FileHelper::path($_ENV['RSA_DIRECTORY']);
@@ -49,23 +61,29 @@ class CertificateCommand extends BaseGeneratorCommand
             'Select profile',
             $profiles
         );
-        $helper = $this->getHelper('question');
-        $profileName = $helper->ask($input, $output, $question);*/
-        $profileName = 'symfony.tpl';
+        $helper = $this->getHelper('question');*/
+        $issuerProfileName = $this->selectProfile('Select issuer', $input, $output);
+        $subjectProfileName = $this->selectProfile('Select subject', $input, $output);
 
-        $certifierStore = new RsaStore(FileHelper::path($_ENV['RSA_CA_DIRECTORY']));
-        $subjectStore = new RsaStore($rsaDir . DIRECTORY_SEPARATOR . $profileName);
+        //$profileName = 'symfony.tpl';
+//        $profileName = 'root';
+
+        $issuerStore = new RsaStoreFile($rsaDir . DIRECTORY_SEPARATOR . $issuerProfileName);
+        $subjectStore = new RsaStoreFile($rsaDir . DIRECTORY_SEPARATOR . $subjectProfileName);
         $subjectStore->enableWrite();
 
         $subjectEntity = $subjectStore->getSubject();
         $subjectEntity->setExpire(TimeEnum::SECOND_PER_YEAR);
         $subjectEntity->setPublicKey($subjectStore->getPublicKey());
 
-        $cert = $this->certificateService->make($certifierStore, $subjectEntity, HashAlgoEnum::SHA256);
+        $certEntity = $this->certificateService->make($issuerStore, $subjectEntity, HashAlgoEnum::SHA256);
 
-        $isVerify = $this->certificateService->verify($cert);
+        //dd($certEntity->getRaw());
+        //dd($certEntity->getPem());
+
+        $isVerify = $this->certificateService->verify($certEntity);
         if($isVerify) {
-            $subjectStore->setCertificate($cert);
+            $subjectStore->setCertificate($certEntity->getPem());
             $output->writeln('<fg=green>Success certification!</>');
         } else {
             $output->writeln('<fg=red>Error certification!</>');

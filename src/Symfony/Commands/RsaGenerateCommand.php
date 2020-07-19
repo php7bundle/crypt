@@ -7,10 +7,13 @@ use PhpBundle\Crypt\Domain\Entities\CertificateEntity;
 use PhpBundle\Crypt\Domain\Entities\CertificateInfoEntity;
 use PhpBundle\Crypt\Domain\Entities\CertificateSubjectEntity;
 use PhpBundle\Crypt\Domain\Enums\HashAlgoEnum;
+use PhpBundle\Crypt\Domain\Enums\TrustLevelEnum;
 use PhpBundle\Crypt\Domain\Libs\Rsa\Rsa;
 use PhpBundle\Crypt\Domain\Libs\Rsa\RsaHelper;
 use PhpBundle\Crypt\Domain\Libs\Rsa\RsaStoreFile;
 use PhpBundle\Crypt\Domain\Services\CertificateService;
+use PhpBundle\Crypt\Domain\Services\RsaService;
+use PhpLab\Core\Console\Question\ChoiceQuestion;
 use PhpLab\Core\Domain\Helpers\EntityHelper;
 use PhpLab\Core\Enums\Measure\TimeEnum;
 use PhpLab\Core\Legacy\Yii\Helpers\FileHelper;
@@ -26,40 +29,45 @@ use PhpLab\Dev\Generator\Domain\Scenarios\Input\NameInputScenario;
 use PhpLab\Dev\Generator\Domain\Scenarios\Input\TypeInputScenario;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
 
-class CertificateSelfCommand extends BaseGeneratorCommand
+class RsaGenerateCommand extends BaseGeneratorCommand
 {
 
-    protected static $defaultName = 'crypt:certificate:self';
-    private $certificateService;
+    protected static $defaultName = 'crypt:rsa:generate';
+    private $rsaService;
 
-    public function __construct(string $name = null, CertificateService $certificateService)
+    public function __construct(string $name = null, RsaService $rsaService)
     {
         parent::__construct($name);
-        $this->certificateService = $certificateService;
+        $this->rsaService = $rsaService;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $issuerStore = new RsaStoreFile(FileHelper::path($_ENV['RSA_CA_DIRECTORY']));
-        //$subjectStore = new RsaStoreFile(FileHelper::path($_ENV['RSA_HOST_DIRECTORY']));
+        $rsaDir = FileHelper::path($_ENV['RSA_DIRECTORY']);
 
-        $subjectEntity = new CertificateSubjectEntity;
-        $subjectEntity->setType('company');
-        $subjectEntity->setName('Root');
-        $subjectEntity->setTrustLevel(300);
-        $subjectEntity->setExpire(TimeEnum::SECOND_PER_YEAR * 10);
-        $subjectEntity->setPublicKey($issuerStore->getPublicKey());
+        do {
+            $question = new Question('Enter project name: ');
+            $helper = $this->getHelper('question');
+            $profileName = $helper->ask($input, $output, $question);
+            $dir = $rsaDir . DIRECTORY_SEPARATOR . $profileName;
+            $isValid = true;
+            if(empty($profileName)) {
+                $output->writeln('<fg=yellow>Empty!</>');
+                $isValid = false;
+            }
+            if(is_dir($dir)) {
+                $output->writeln('<fg=yellow>Already exists!</>');
+                $isValid = false;
+            }
+        } while( ! $isValid);
 
-        $cert = $this->certificateService->make($issuerStore, $subjectEntity, HashAlgoEnum::SHA256);
+        $subjectStore = new RsaStoreFile($rsaDir . DIRECTORY_SEPARATOR . $profileName);
+        $subjectStore->enableWrite();
 
-        $isVerify = $this->certificateService->verify($cert);
-        if($isVerify) {
-            $issuerStore->setCertificate($cert);
-            $output->writeln('<fg=green>Success certification!</>');
-        } else {
-            $output->writeln('<fg=red>Error certification!</>');
-        }
+        $this->rsaService->generatePair($subjectStore);
+        $output->writeln('<fg=green>Success generated!</>');
 
         return 0;
     }

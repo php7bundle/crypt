@@ -26,7 +26,7 @@ class HandShakeController
     public function startSession(Request $request) {
         $this->session->start();
         $sessionId = $this->session->getSessionId();
-        $certificate = $this->rsa->getPublicKey();
+        $certificate = $this->rsa->getCertificate()->getBase64();
         $timestamp = time();
         $clientRandomKey = $request->request->get('clientRandomKey');
         $dataForSing = $sessionId . $certificate . $clientRandomKey . $timestamp;
@@ -36,35 +36,31 @@ class HandShakeController
             'certificate' => $certificate,
             'clientRandomKey' => $clientRandomKey,
             'timestamp' => $timestamp,
-            'signature' => $signatureEntity->getSignatureBase64(),
-            'signatureFormat' => 'base64',
-            'signatureAlgorithm' => 'sha256',
+            'signature' => [
+                'signature' => $signatureEntity->getSignatureBase64(),
+                'format' => 'base64',
+                'algorithm' => 'sha256',
+            ],
         ]);
     }
 
     public function setSecretKey(Request $request)
     {
         $encryptedSecretKey = $request->request->get('encryptedSecretKey');
+        $encryptedSecretMac = $request->request->get('encryptedSecretMac');
         $sessionId = $request->request->get('sessionId');
         $this->session->start($sessionId);
-        if(empty($encryptedSecretKey)) {
-            return new JsonResponse([
-                [
-                    'field' => 'encryptedSecretKey',
-                    'message' => 'Empty secret key!',
-                ],
-            ], 422);
+        if(empty($encryptedSecretKey) || empty($encryptedSecretMac)) {
+            return new JsonResponse([], 422);
         }
-        $key = $this->rsa->decode($encryptedSecretKey);
-        if(empty($key)) {
-            return new JsonResponse([
-                [
-                    'field' => 'encryptedSecretKey',
-                    'message' => 'Decrypt secret key error!',
-                ],
-            ], 422);
+        $secretKey = $this->rsa->decode($encryptedSecretKey);
+        $secretMac = $this->rsa->decode($encryptedSecretMac);
+        if(empty($secretKey) || empty($secretMac)) {
+            return new JsonResponse([], 422);
         }
-        $this->session->set('secretKey', $key);
+        $this->session->set('secretKey', $secretKey);
+        $this->session->set('secretMac', $secretMac);
+
         return new Response();
     }
 

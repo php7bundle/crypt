@@ -3,6 +3,7 @@
 namespace PhpBundle\Crypt\Domain\Libs\Encoders;
 
 use PhpBundle\Crypt\Domain\Enums\EncryptAlgorithmEnum;
+use PhpLab\Core\Helpers\StringHelper;
 use phpseclib\Crypt\AES;
 use phpseclib\Crypt\Base;
 
@@ -42,7 +43,8 @@ class AesAdvancedEncoder implements EncoderInterface
             "iv" => $iv,
             "s" => $salt,
         ];
-        return $this->formatter->encode($data);
+        $encoded = $this->formatter->encode($data);
+        return StringHelper::utf8ize($encoded);
     }
 
     public function decode($jsonStr)

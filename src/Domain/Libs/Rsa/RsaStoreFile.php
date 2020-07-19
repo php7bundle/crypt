@@ -7,8 +7,9 @@ use PhpBundle\Crypt\Domain\Enums\RsaKeyFormatEnum;
 use PhpBundle\Crypt\Domain\Libs\Encoders\EncoderInterface;
 use PhpLab\Core\Exceptions\NotFoundException;
 use PhpLab\Core\Helpers\StringHelper;
+use PhpLab\Core\Legacy\Yii\Helpers\FileHelper;
 
-class RsaStore extends BaseRsaStore implements RsaStoreInterface
+class RsaStoreFile extends BaseRsaStore implements RsaStoreInterface
 {
 
     private $dir;
@@ -27,7 +28,7 @@ class RsaStore extends BaseRsaStore implements RsaStoreInterface
         if( ! file_exists($fileName)) {
             throw new NotFoundException("Not found $name!");
         }
-        $content = file_get_contents($fileName);
+        $content = FileHelper::load($fileName);
         return $content;
     }
 
@@ -35,7 +36,7 @@ class RsaStore extends BaseRsaStore implements RsaStoreInterface
         if($this->readOnly) {
             throw new \Exception('Read only!');
         }
-        return file_put_contents($this->dir . '/' . $name, $content);
+        return FileHelper::save($this->dir . '/' . $name, $content);
     }
 
 }
