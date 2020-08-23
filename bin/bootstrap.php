@@ -5,7 +5,6 @@ use Illuminate\Container\Container;
 use Symfony\Component\Console\Application;
 use PhpLab\Core\Console\Helpers\CommandHelper;
 use PhpBundle\Crypt\Domain\Libs\Rsa\RsaStoreFile;
-use PhpBundle\Crypt\Symfony\Api\CryptModule;
 use PhpLab\Core\Enums\Measure\TimeEnum;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
@@ -37,5 +36,5 @@ $container->bind(AbstractAdapter::class, function () {
 }, true);
 
 CommandHelper::registerFromNamespaceList([
-    'PhpBundle\Crypt\Symfony\Commands',
+    'PhpBundle\CryptTunnel\Symfony\Commands',
 ], $container);
