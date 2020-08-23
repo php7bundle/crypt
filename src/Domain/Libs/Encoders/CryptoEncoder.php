@@ -2,9 +2,9 @@
 
 namespace PhpBundle\Crypt\Domain\Libs\Encoders;
 
-use PhpBundle\Crypt\Domain\Libs\Tunnel\JsonFormatter;
-use PhpBundle\Crypt\Domain\Libs\Tunnel\StringFormatter;
-use PhpBundle\Crypt\Domain\Libs\Tunnel\TokenFormatter;
+use PhpBundle\CryptTunnel\Domain\Libs\Tunnel\JsonFormatter;
+use PhpBundle\CryptTunnel\Domain\Libs\Tunnel\StringFormatter;
+use PhpBundle\CryptTunnel\Domain\Libs\Tunnel\TokenFormatter;
 use phpDocumentor\Reflection\Types\Object_;
 
 class CryptoEncoder

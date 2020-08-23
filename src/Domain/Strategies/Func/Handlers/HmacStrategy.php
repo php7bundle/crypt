@@ -2,7 +2,7 @@
 
 namespace PhpBundle\Crypt\Domain\Strategies\Func\Handlers;
 
-use PhpBundle\Crypt\Domain\Helpers\EncryptHelper;
+use PhpBundle\Jwt\Domain\Helpers\EncryptHelper;
 
 class HmacStrategy implements HandlerInterface
 {

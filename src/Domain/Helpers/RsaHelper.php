@@ -3,7 +3,7 @@
 namespace PhpBundle\Crypt\Domain\Helpers;
 
 use php7rails\app\domain\helpers\EnvService;
-use PhpBundle\Crypt\Domain\Entities\KeyEntity;
+use PhpBundle\Jwt\Domain\Entities\KeyEntity;
 use PhpBundle\Crypt\Domain\Enums\EncryptAlgorithmEnum;
 use PhpBundle\Crypt\Domain\Enums\RsaBitsEnum;
 
